@@ -1,0 +1,48 @@
+<header>
+  <%= form_tag '/upload', :multipart => true, 'data-ajax' => 'false' do %>
+    <%= file_field_tag 'file' %>
+    <%= hidden_field_tag 'current_path', @current_path %>
+    <%= submit_tag 'Upload file', 'data-inline' => 'true' %>
+  <% end %>
+</header>
+
+<article>
+  <section> 
+    <%= link_to_unless is_root_path(@current_path), '/ROOT', {:controller => 'files'},  :path => '/' %>
+    <% paths = [] %>
+    <% @current_path.split('/').each do |path| %>
+      <% next if path == '' %>
+      <% paths << path %> 
+      <%= link_to "/" + path, :path => paths.join('/') %>
+    <% end %>
+  </section>
+  <section>
+    <table id="files" cellspacing="1" cellpadding="3">
+      <% unless is_root_path(@current_path) %>
+        <tr>
+          <td colspan="3"><%= link_to '..', :path => File.dirname(@current_path) %></td>
+        </tr>
+      <% end %>
+      <% @files.list_files.each_with_index do |filename, index| %>
+        <% file_full_path = "#{@full_path}/#{filename}" %>
+        <% file_current_path = "#{@current_path}/#{filename}" %>
+        <% file = File::Stat.new(file_full_path) %>
+        <tr id="file_<%= index %>">
+          <td class="filename">
+            <%= show_file_icon(file_full_path) %><%= link_to filename, {:path => file_current_path}, :title => filename, 'data-ajax' => File.directory?(file_full_path) %>
+          </td>
+          <td class="size"><%= number_to_human_size(file.size) %></td>
+        </tr>
+      <% end %>
+    </table>
+  </section>
+</article>
+
+<footer>
+  <%= form_tag({:controller => 'files'}, {:method => 'get', 'id' => 'f_change_path'}) do %>
+    <%= select_tag 'new_path', options_for_select(@paths_history, @current_path), :onchange => "$('#path').val($(this).val());window.location.replace('#{url_for :controller => :files}?path=' + $(this).val());" %>
+    <%= text_field_tag 'path', @current_path %>
+    <input type="submit" value="Change Path">
+    <br>
+  <% end %>
+</footer>
