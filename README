@@ -1,5 +1,6 @@
 Usage: 
 
+$ bundle
 $ rake assets:precompile
 $ unicorn_rails -p 3000 -E production
 
